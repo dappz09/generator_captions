@@ -36,15 +36,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $provider = null;
             if ($aiModel === 'gemini') {
-                $key = $config['gemini_api_key'] ?? '';
+                $key = getenv('GEMINI_API_KEY') ?: ($config['gemini_api_key'] ?? '');
                 if ($key === 'ISI_DENGAN_API_KEY_GEMINI_ANDA' || empty($key)) {
-                    throw new Exception("API Key Gemini belum dikonfigurasi di file config.php.");
+                    throw new Exception("API Key Gemini belum dikonfigurasi. Harap isi di Environment Variable atau config.php.");
                 }
                 $provider = new GeminiProvider($key);
             } elseif ($aiModel === 'groq') {
-                $key = $config['groq_api_key'] ?? '';
+                $key = getenv('GROQ_API_KEY') ?: ($config['groq_api_key'] ?? '');
                 if ($key === 'ISI_DENGAN_API_KEY_GROQ_ANDA' || empty($key)) {
-                    throw new Exception("API Key Groq belum dikonfigurasi di file config.php.");
+                    throw new Exception("API Key Groq belum dikonfigurasi. Harap isi di Environment Variable atau config.php.");
                 }
                 $provider = new GroqProvider($key);
             } else {
