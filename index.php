@@ -80,8 +80,8 @@ if (isset($_SESSION['result_caption'])) {
 }
 
 // Nilai default untuk form
-$defaultProductName = "Sistemika";
-$defaultFeatures = "Layanan social media marketing untuk agensi digital";
+$defaultProductName = "";
+$defaultFeatures = "";
 
 ?>
 <!DOCTYPE html>
@@ -156,6 +156,7 @@ $defaultFeatures = "Layanan social media marketing untuk agensi digital";
                     <label for="product_name" class="block text-sm font-medium text-gray-700 mb-1">Nama Produk / Layanan</label>
                     <input type="text" id="product_name" name="product_name" 
                            value="<?php echo isset($_POST['product_name']) ? htmlspecialchars($_POST['product_name']) : $defaultProductName; ?>" 
+                           placeholder="Contoh: Sistemika"
                            class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
                            required>
                 </div>
@@ -163,6 +164,7 @@ $defaultFeatures = "Layanan social media marketing untuk agensi digital";
                 <div>
                     <label for="features" class="block text-sm font-medium text-gray-700 mb-1">Keunggulan / Fitur Utama</label>
                     <textarea id="features" name="features" rows="3" 
+                              placeholder="Contoh: Layanan social media marketing untuk agensi digital"
                               class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all resize-none"
                               required><?php echo isset($_POST['features']) ? htmlspecialchars($_POST['features']) : $defaultFeatures; ?></textarea>
                 </div>
