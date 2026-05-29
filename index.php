@@ -1,4 +1,5 @@
 <?php
+session_start();
 
 // 1. Memuat konfigurasi API Key
 $config = require_once 'config.php';
@@ -14,20 +15,12 @@ $generatedCaption = '';
 $error = '';
 $rawCaption = ''; // Untuk dicopy
 
-// Fungsi sederhana untuk mem-parsing Markdown ke HTML (khususnya Bold dan Italic)
+// Fungsi sederhana untuk mem-parsing Markdown ke HTML
 function parseMarkdown($text) {
-    // Escape HTML dasar untuk keamanan (mencegah XSS)
     $text = htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
-    
-    // Ubah **teks** menjadi <strong>teks</strong>
     $text = preg_replace('/\*\*(.*?)\*\*/s', '<strong>$1</strong>', $text);
-    
-    // Ubah *teks* menjadi <em>teks</em>
     $text = preg_replace('/\*([^\*]+)\*/', '<em>$1</em>', $text);
-    
-    // Ubah baris baru menjadi <br>
     $text = nl2br($text);
-    
     return $text;
 }
 
@@ -42,7 +35,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         try {
             $provider = null;
-            
             if ($aiModel === 'gemini') {
                 $key = $config['gemini_api_key'] ?? '';
                 if ($key === 'ISI_DENGAN_API_KEY_GEMINI_ANDA' || empty($key)) {
@@ -55,26 +47,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     throw new Exception("API Key Groq belum dikonfigurasi di file config.php.");
                 }
                 $provider = new GroqProvider($key);
-            // } elseif ($aiModel === 'ollama') {
-            //     // Ollama lokal tidak butuh API Key
-            //     $provider = new OllamaProvider('llama3');
             } else {
                 throw new Exception("Model AI tidak valid.");
             }
 
             $generator = new CaptionGenerator($provider);
             $rawCaption = $generator->generate($productName, $features, $tone);
-
-            // Terapkan parsing markdown untuk tampilan web
             $generatedCaption = parseMarkdown($rawCaption);
             
         } catch (Exception $e) {
             $error = $e->getMessage();
         }
     }
+    
+    // Simpan hasil ke session
+    $_SESSION['result_caption'] = $generatedCaption;
+    $_SESSION['result_raw'] = $rawCaption;
+    $_SESSION['result_error'] = $error;
+    $_SESSION['form_data'] = $_POST;
+    
+    // Redirect untuk mencegah Form Resubmission (PRG Pattern)
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit;
 }
 
-// Nilai default untuk skenario tes
+// Ambil hasil dari session jika ada (setelah redirect)
+if (isset($_SESSION['result_caption'])) {
+    $generatedCaption = $_SESSION['result_caption'];
+    $rawCaption = $_SESSION['result_raw'];
+    $error = $_SESSION['result_error'];
+    $_POST = $_SESSION['form_data']; // Repopulate form
+}
+
+// Nilai default untuk form
 $defaultProductName = "Sistemika";
 $defaultFeatures = "Layanan social media marketing untuk agensi digital";
 
@@ -84,9 +89,9 @@ $defaultFeatures = "Layanan social media marketing untuk agensi digital";
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Caption Generator</title>
-    <!-- Favicon Custom (Emoji ✨) -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✨</text></svg>">
+    <title>PostMagic - AI Caption Generator</title>
+    <!-- Favicon Custom (Emoji 🪶) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🪶</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -121,9 +126,14 @@ $defaultFeatures = "Layanan social media marketing untuk agensi digital";
         
         <!-- Bagian Kiri: Form Input -->
         <div class="glass-card rounded-2xl p-8 transition-all hover:shadow-xl">
-            <div class="mb-6">
-                <h1 class="text-3xl font-bold text-gray-800 tracking-tight">AI Caption <span class="text-blue-600">Generator</span></h1>
-                <p class="text-gray-500 mt-2 text-sm">Buat caption social media menarik dalam hitungan detik.</p>
+            <div class="mb-6 flex items-center gap-4">
+                <div class="w-14 h-14 flex items-center justify-center text-4xl bg-orange-50 rounded-xl shadow-sm border border-orange-100">
+                    🪶
+                </div>
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800 tracking-tight">Post<span class="text-orange-500">Magic</span></h1>
+                    <p class="text-gray-500 mt-1 text-sm">Buat caption social media menarik dalam hitungan detik.</p>
+                </div>
             </div>
 
             <?php if (!empty($error)): ?>
